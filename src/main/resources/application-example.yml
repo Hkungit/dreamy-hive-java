@@ -1,0 +1,33 @@
+# 这是一个示例配置文件，用于说明如何设置环境变量
+# 请不要在此文件中填写实际的密钥信息
+# 复制此文件并重命名为application-dev.yml或application-local.yml用于本地开发
+
+# 阿里云OSS配置示例
+aliyun:
+  oss:
+    # 地域节点
+    endpoint: oss-cn-beijing.aliyuncs.com
+    # 访问密钥ID（替换为您的AccessKey ID或环境变量）
+    accessKeyId: ${ALIYUN_OSS_ACCESS_KEY_ID}
+    # 访问密钥密码（替换为您的AccessKey Secret或环境变量）
+    accessKeySecret: ${ALIYUN_OSS_ACCESS_KEY_SECRET}
+    # 存储桶名称
+    bucketName: your-bucket-name
+
+# 如何设置环境变量:
+# 1. Linux/Mac:
+#    export ALIYUN_OSS_ACCESS_KEY_ID=your_access_key_id
+#    export ALIYUN_OSS_ACCESS_KEY_SECRET=your_access_key_secret
+#
+# 2. Windows:
+#    set ALIYUN_OSS_ACCESS_KEY_ID=your_access_key_id
+#    set ALIYUN_OSS_ACCESS_KEY_SECRET=your_access_key_secret
+#
+# 3. IDE (如IntelliJ IDEA):
+#    在运行配置中添加环境变量
+#
+# 4. 容器环境 (如Docker):
+#    在docker-compose.yml或Dockerfile中设置环境变量
+#
+# 5. 云平台:
+#    使用平台提供的环境变量或密钥管理服务

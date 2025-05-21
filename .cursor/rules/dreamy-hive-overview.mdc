@@ -1,0 +1,110 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Dreamy Hive Project Overview
+
+Dreamy Hive is a Java single architecture web application combining a product marketplace with a user community (similar to a simplified version of "Dewu").
+
+## Project Modules
+
+### User Module
+- Product browsing and details
+- Shopping cart functionality
+- Order management
+- Community features (posts, comments, likes)
+
+### Admin Module
+- Product management (CRUD)
+- Category management
+- SKU management
+- Order and post management
+
+## Technology Stack
+
+### Backend
+- Spring Boot 3.x
+- MyBatis / MyBatis Plus
+- MySQL 8.x
+- Lombok
+- PageHelper
+
+### Frontend
+- Vue 3 + Composition API
+- Element Plus UI
+- Axios + Vue Router
+- Vuex (optional)
+
+## Database Structure
+
+Main entities:
+- User (both regular users and admins)
+- Product
+- Category
+- SKU (Stock Keeping Unit)
+- Product Image
+- Cart
+- Order & Order Item
+- Post
+- Comment
+
+## Project Structure
+
+### Backend Structure
+```
+dreamy-hive/
+├── dreamy-hive-server/
+│   ├── controller/
+│   │   ├── user/        # User-facing controllers
+│   │   └── admin/       # Admin controllers
+│   ├── service/
+│   │   ├── user/
+│   │   └── admin/
+│   ├── mapper/
+│   │   ├── user/
+│   │   └── admin/
+│   ├── entity/          # All entity classes
+│   ├── config/          # Configuration classes
+│   └── DreamyHiveApplication.java
+└── pom.xml
+```
+
+### Frontend Structure
+```
+dreamy-hive-web/
+├── src/
+│   ├── views/
+│   │   ├── user/         # User-facing pages
+│   │   └── admin/        # Admin pages
+│   ├── router/
+│   ├── api/
+│   │   ├── user.js       # User API calls
+│   │   └── admin.js      # Admin API calls
+│   ├── store/
+│   ├── App.vue
+│   └── main.js
+```
+
+## API Design
+
+The project follows RESTful API design:
+
+### User APIs
+- GET /api/products - Get product list
+- GET /api/products/{id} - Get product details
+- POST /api/cart/add - Add to cart
+- GET /api/cart - Get user's cart
+- POST /api/order/create - Create order
+- GET /api/posts - Get posts
+- POST /api/posts - Create post
+
+### Admin APIs
+- POST /api/admin/login - Admin login
+- GET/POST/PUT/DELETE /api/admin/products - Product management
+- GET/POST/PUT/DELETE /api/admin/categories - Category management
+- GET/POST/PUT/DELETE /api/admin/skus - SKU management
+- GET/PUT /api/admin/orders - Order management
+- GET/DELETE /api/admin/posts - Post management
+
+For detailed documentation, see [doc/dreamy hive开发文档.md](mdc:doc/dreamy hive开发文档.md)

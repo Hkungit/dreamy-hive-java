@@ -1,0 +1,167 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: dreamy-hive
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/dreamy-hive-java?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  # Redis配置
+  data:
+    redis:
+      host: 47.98.113.99
+      port: 6379
+      password:  # 如果没有密码可以为空
+      database: 0
+      timeout: 10000
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1
+          max-idle: 8
+          min-idle: 0
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.dreamy.hive.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# PageHelper 分页插件配置
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+# Swagger 配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  packages-to-scan: com.dreamy.hive.controller
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.dreamy.hive.controller
+
+# Sa-Token配置
+sa-token:
+  # token名称 (同时也是cookie名称)
+  token-name: satoken
+  # token有效期，单位s 默认30天, -1代表永不过期 
+  timeout: 2592000
+  # token临时有效期 (指定时间内无操作就过期) 单位: 秒
+  active-timeout: 3600
+  # 是否允许同一账号并发登录 (为true时允许一个账号多地同时登录)
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+  is-share: false
+  # token风格
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: true
+  # 是否从cookie中读取token
+  is-read-cookie: true
+  # 是否从请求头中读取token
+  is-read-header: true
+  # 是否在初始化配置时打印版本字符画
+  isPrint: false
+  
+
+
+# 文件上传配置
+file:
+  upload:
+    # 文件上传基础路径
+    basePath: /tmp/upload
+    # 图片上传路径
+    imagePath: images
+    # 文件上传路径
+    filePath: files
+    # 头像上传路径
+    avatarPath: avatars
+    # 商品图片上传路径
+    productPath: products
+    # 帖子图片上传路径
+    postPath: posts
+    # 允许上传的图片类型
+    allowedImageTypes: 
+      - bmp
+      - jpg
+      - jpeg
+      - gif
+      - png
+    # 允许上传的文件类型
+    allowedFileTypes:
+      - pdf
+      - doc
+      - docx
+      - xls
+      - xlsx
+      - ppt
+      - pptx
+      - txt
+      - zip
+      - rar
+    # 最大文件大小（MB）
+    maxFileSize: 10
+    # 最大图片大小（MB）
+    maxImageSize: 5
+    # 是否允许覆盖已存在的文件
+    allowOverride: false
+    
+# 阿里云OSS配置
+aliyun:
+  oss:
+    # 地域节点
+    endpoint: oss-cn-beijing.aliyuncs.com
+    # 访问密钥ID（通过环境变量ALIYUN_OSS_ACCESS_KEY_ID设置）
+    accessKeyId: ${ALIYUN_OSS_ACCESS_KEY_ID}
+    # 访问密钥密码（通过环境变量ALIYUN_OSS_ACCESS_KEY_SECRET设置）
+    accessKeySecret: ${ALIYUN_OSS_ACCESS_KEY_SECRET}
+    # 存储桶名称
+    bucketName: dreamy-hive
+
+# 环境变量配置说明：
+# 1. 在运行环境中设置以下环境变量：
+#    ALIYUN_OSS_ACCESS_KEY_ID=您的AccessKey ID
+#    ALIYUN_OSS_ACCESS_KEY_SECRET=您的AccessKey Secret
+# 2. 对于本地开发，可以在IDE的运行配置中设置这些环境变量
+# 3. 对于生产环境，请使用安全的配置管理方式
+    # 访问域名（默认使用endpoint生成，可以自定义为绑定的域名）
+    domain: https://${aliyun.oss.bucketName}.${aliyun.oss.endpoint}
+    # 文件存储目录
+    dir:
+      # 头像存储目录
+      avatar: avatars/
+      # 图片存储目录
+      image: images/
+      # 商品图片存储目录
+      product: products/
+      # 帖子图片存储目录
+      post: posts/

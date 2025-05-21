@@ -1,0 +1,45 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Dreamy Hive Project Guide
+
+This project is a Java monolithic web application combining an e-commerce mall and a user community, inspired by "得物". It is for learning and practice purposes only.
+
+## Key Documentation
+- [开发文档](mdc:doc/dreamy hive开发文档.md): Full project overview, module breakdown, API design, backend/frontend structure, and development flow.
+- [数据库设计](mdc:doc/db设计.md): Complete SQL schema for all tables (users, products, orders, community, etc.).
+- [开发 TODO](mdc:TODO.md): Up-to-date checklist of all major features and development phases.
+
+## Project Structure
+- Backend: Java (Spring Boot 3.x, MyBatis/MyBatis Plus, MySQL 8.x, Lombok)
+- Frontend: Vue 3 + Element Plus (see frontend repo if available)
+- Key backend directories: `controller/`, `service/`, `mapper/`, `entity/`, `dto/`, `vo/`, `config/`, `common/`
+- See [开发文档](mdc:doc/dreamy hive开发文档.md) for a detailed directory tree.
+
+## Database Design
+- All main tables and fields are defined in [数据库设计](mdc:doc/db设计.md).
+- Includes: user, category, attribute, spu, sku, product_image, address, order, order_detail, post, comment, like.
+- Use this as the source of truth for entity/model creation.
+
+## API Endpoints
+- RESTful API for both user and admin modules.
+- User: product browsing, cart, order, community (posts/comments/likes), authentication.
+- Admin: product/category/SKU management, order management, post/comment moderation, statistics.
+- See [开发文档](mdc:doc/dreamy hive开发文档.md) for full endpoint tables and descriptions.
+
+## Development TODOs
+- Track progress and next steps in [开发 TODO](mdc:TODO.md).
+- Tasks are split by user/admin modules and by development phase.
+- Use this to coordinate work and check off completed features.
+
+## Contribution Guide
+- Start by reading [开发文档](mdc:doc/dreamy hive开发文档.md) for architecture and conventions.
+- Reference [数据库设计](mdc:doc/db设计.md) when working on entities, mappers, or database migrations.
+- Update [开发 TODO](mdc:TODO.md) as you complete features or fix bugs.
+
+---
+
+**For any new feature or bugfix, consult these three files first to ensure consistency and avoid duplication.**
+
