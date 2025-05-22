@@ -4,6 +4,8 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dreamy.hive.annotation.RequiresPermission;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.Comment;
 import com.dreamy.hive.service.CommentService;
@@ -20,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/admin/comments")
 @Tag(name = "后台评论管理", description = "后台评论管理相关接口")
-@SaCheckRole("admin")
 public class AdminCommentController {
 
     @Autowired

@@ -1,5 +1,6 @@
 package com.dreamy.hive.controller.v1.admin;
 
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.User;
 import com.dreamy.hive.service.UserService;
@@ -12,7 +13,6 @@ import io.swagger.v3.oas.annotations.Operation;
 @Tag(name = "后台用户管理", description = "管理员用户管理相关接口")
 @RestController
 @RequestMapping("/v1/admin/user")
-@SaCheckRole("admin")
 public class AdminUserController {
     @Autowired
     private UserService userService;

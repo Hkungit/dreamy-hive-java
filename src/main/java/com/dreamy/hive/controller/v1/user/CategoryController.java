@@ -14,7 +14,7 @@ import java.util.List;
  * 商品分类控制器
  */
 @RestController
-@RequestMapping("/api/v1/categories")
+@RequestMapping("/v1/categories")
 @Tag(name = "商品分类", description = "商品分类相关接口")
 public class CategoryController {
 

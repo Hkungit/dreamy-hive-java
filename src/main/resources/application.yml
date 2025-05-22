@@ -97,8 +97,12 @@ sa-token:
 # 文件上传配置
 file:
   upload:
+    # 存储类型：local（本地存储）或 oss（阿里云OSS）
+    storage-type: local
     # 文件上传基础路径
     basePath: /tmp/upload
+    # 本地存储根目录
+    root-dir: uploads
     # 图片上传路径
     imagePath: images
     # 文件上传路径

@@ -1,5 +1,6 @@
 package com.dreamy.hive.controller.v1.admin;
 
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.ProductImage;
 import com.dreamy.hive.service.FileStorageService;
@@ -18,8 +19,8 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/admin/product-images")
-@Tag(name = "商品图片管理", description = "商品图片管理相关接口")
+@RequestMapping("/v1/admin/product-images")
+@Tag(name = "管理端-商品图片管理", description = "管理端商品图片相关接口")
 public class ProductImageController {
 
     @Autowired

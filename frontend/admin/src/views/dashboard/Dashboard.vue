@@ -1,108 +1,164 @@
 <template>
-  <div class="dashboard-container">
+  <div class="dashboard">
     <el-row :gutter="20">
-      <!-- 统计卡片 -->
-      <el-col :xs="24" :sm="12" :md="6" v-for="(item, index) in statCards" :key="index">
-        <el-card class="stat-card" :body-style="{ padding: '20px' }">
-          <div class="card-content">
-            <el-icon :size="40" :color="item.color">
-              <component :is="item.icon" />
-            </el-icon>
-            <div class="card-info">
-              <div class="card-value">{{ item.value }}</div>
-              <div class="card-title">{{ item.title }}</div>
+      <el-col :span="24">
+        <el-card class="welcome-card">
+          <template #header>
+            <div class="card-header">
+              <span>欢迎使用 Dreamy Hive 管理系统</span>
+            </div>
+          </template>
+          <div class="welcome-content">
+            <el-avatar :size="60" :src="userStore.avatar">
+              <el-icon><User /></el-icon>
+            </el-avatar>
+            <div class="user-info">
+              <h3>{{ greeting }}，{{ userStore.nickname || userStore.username || '管理员' }}！</h3>
+              <p>今天是 {{ currentDate }}，祝您工作愉快！</p>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" class="chart-row">
-      <!-- 销售趋势图 -->
-      <el-col :xs="24" :lg="16">
-        <el-card class="chart-card">
-          <template #header>
-            <div class="card-header">
-              <span>销售趋势</span>
-              <el-radio-group v-model="salesTimeRange" size="small">
-                <el-radio-button label="week">本周</el-radio-button>
-                <el-radio-button label="month">本月</el-radio-button>
-                <el-radio-button label="year">全年</el-radio-button>
-              </el-radio-group>
+    <el-row :gutter="20" style="margin-top: 20px;">
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <el-icon class="stat-icon" color="#409EFF"><Goods /></el-icon>
+            <div class="stat-content">
+              <div class="stat-number">1,234</div>
+              <div class="stat-label">商品总数</div>
             </div>
-          </template>
-          <div class="chart-container">
-            <!-- 这里将集成图表库，如 ECharts -->
-            <div class="chart-placeholder">销售趋势图表</div>
           </div>
         </el-card>
       </el-col>
-
-      <!-- 商品分类占比 -->
-      <el-col :xs="24" :lg="8">
-        <el-card class="chart-card">
-          <template #header>
-            <div class="card-header">
-              <span>商品分类占比</span>
+      
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <el-icon class="stat-icon" color="#67C23A"><List /></el-icon>
+            <div class="stat-content">
+              <div class="stat-number">567</div>
+              <div class="stat-label">订单总数</div>
             </div>
-          </template>
-          <div class="chart-container">
-            <!-- 这里将集成图表库，如 ECharts -->
-            <div class="chart-placeholder">分类占比图表</div>
+          </div>
+        </el-card>
+      </el-col>
+      
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <el-icon class="stat-icon" color="#E6A23C"><User /></el-icon>
+            <div class="stat-content">
+              <div class="stat-number">890</div>
+              <div class="stat-label">用户总数</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-item">
+            <el-icon class="stat-icon" color="#F56C6C"><Money /></el-icon>
+            <div class="stat-content">
+              <div class="stat-number">¥12,345</div>
+              <div class="stat-label">今日收入</div>
+            </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-row :gutter="20" class="table-row">
-      <!-- 最近订单 -->
-      <el-col :xs="24" :lg="12">
-        <el-card class="table-card">
+    <el-row :gutter="20" style="margin-top: 20px;">
+      <el-col :span="12">
+        <el-card>
           <template #header>
             <div class="card-header">
-              <span>最近订单</span>
-              <el-button type="text" @click="goToOrders">查看全部</el-button>
+              <span>用户信息</span>
             </div>
           </template>
-          <el-table :data="recentOrders" style="width: 100%" :max-height="300">
-            <el-table-column prop="orderNo" label="订单号" width="120" />
-            <el-table-column prop="customer" label="客户" width="100" />
-            <el-table-column prop="amount" label="金额" width="100">
-              <template #default="scope">
-                ¥{{ scope.row.amount.toFixed(2) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="status" label="状态">
-              <template #default="scope">
-                <el-tag :type="getOrderStatusType(scope.row.status)">
-                  {{ getOrderStatusText(scope.row.status) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="createTime" label="创建时间" width="160" />
-          </el-table>
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="用户名">
+              {{ userStore.userInfo.username || '未设置' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="昵称">
+              {{ userStore.userInfo.nickname || '未设置' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="邮箱">
+              {{ userStore.userInfo.email || '未设置' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="手机号">
+              {{ userStore.userInfo.phone || '未设置' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="状态">
+              <el-tag :type="userStore.userInfo.status === 1 ? 'success' : 'danger'">
+                {{ userStore.userInfo.status === 1 ? '正常' : '禁用' }}
+              </el-tag>
+            </el-descriptions-item>
+          </el-descriptions>
         </el-card>
       </el-col>
-
-      <!-- 热门商品 -->
-      <el-col :xs="24" :lg="12">
-        <el-card class="table-card">
+      
+      <el-col :span="12">
+        <el-card>
           <template #header>
             <div class="card-header">
-              <span>热门商品</span>
-              <el-button type="text" @click="goToProducts">查看全部</el-button>
+              <span>权限信息</span>
             </div>
           </template>
-          <el-table :data="hotProducts" style="width: 100%" :max-height="300">
-            <el-table-column prop="name" label="商品名称" />
-            <el-table-column prop="sales" label="销量" width="100" />
-            <el-table-column prop="price" label="价格" width="100">
-              <template #default="scope">
-                ¥{{ scope.row.price.toFixed(2) }}
-              </template>
-            </el-table-column>
-            <el-table-column prop="inventory" label="库存" width="100" />
-          </el-table>
+          <div class="permission-info">
+            <div class="permission-section">
+              <h4>角色列表</h4>
+              <el-tag 
+                v-for="role in userStore.roles" 
+                :key="role" 
+                type="primary" 
+                style="margin-right: 8px; margin-bottom: 8px;"
+              >
+                {{ role }}
+              </el-tag>
+              <span v-if="userStore.roles.length === 0" class="empty-text">暂无角色</span>
+            </div>
+            
+            <div class="permission-section">
+              <h4>权限列表</h4>
+              <el-tag 
+                v-for="permission in userStore.permissions" 
+                :key="permission" 
+                type="success" 
+                size="small"
+                style="margin-right: 8px; margin-bottom: 8px;"
+              >
+                {{ permission }}
+              </el-tag>
+              <span v-if="userStore.permissions.length === 0" class="empty-text">暂无权限</span>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row style="margin-top: 20px;">
+      <el-col :span="24">
+        <el-card>
+          <template #header>
+            <div class="card-header">
+              <span>功能测试</span>
+            </div>
+          </template>
+          <el-space>
+            <el-button type="primary" @click="testPermission">
+              测试权限接口
+            </el-button>
+            <el-button type="success" @click="refreshUserInfo">
+              刷新用户信息
+            </el-button>
+            <el-button type="warning" @click="showTokenInfo">
+              查看Token信息
+            </el-button>
+          </el-space>
         </el-card>
       </el-col>
     </el-row>
@@ -110,149 +166,171 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { 
-  ShoppingCart, 
-  Goods, 
-  User, 
-  Money 
-} from '@element-plus/icons-vue'
+import { computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { User, Goods, List, Money } from '@element-plus/icons-vue'
+import { useUserStore } from '../../store/modules/user'
+import request from '../../api/request'
 
-const router = useRouter()
-const salesTimeRange = ref('month')
+const userStore = useUserStore()
 
-// 统计卡片数据
-const statCards = ref([
-  { title: '今日订单', value: 128, icon: ShoppingCart, color: '#409EFF' },
-  { title: '商品总数', value: 1024, icon: Goods, color: '#67C23A' },
-  { title: '用户总数', value: 1536, icon: User, color: '#E6A23C' },
-  { title: '总销售额', value: '¥15,243', icon: Money, color: '#F56C6C' }
-])
+// 当前日期
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  })
+})
 
-// 最近订单数据
-const recentOrders = ref([
-  { orderNo: 'DH20250520001', customer: '张三', amount: 299.00, status: 'pending', createTime: '2025-05-20 10:23:45' },
-  { orderNo: 'DH20250519002', customer: '李四', amount: 599.00, status: 'processing', createTime: '2025-05-19 15:30:22' },
-  { orderNo: 'DH20250519001', customer: '王五', amount: 1299.00, status: 'completed', createTime: '2025-05-19 09:12:34' },
-  { orderNo: 'DH20250518003', customer: '赵六', amount: 499.00, status: 'completed', createTime: '2025-05-18 16:45:10' },
-  { orderNo: 'DH20250518002', customer: '钱七', amount: 899.00, status: 'cancelled', createTime: '2025-05-18 14:20:55' }
-])
+// 问候语
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 6) return '夜深了'
+  if (hour < 9) return '早上好'
+  if (hour < 12) return '上午好'
+  if (hour < 14) return '中午好'
+  if (hour < 17) return '下午好'
+  if (hour < 19) return '傍晚好'
+  return '晚上好'
+})
 
-// 热门商品数据
-const hotProducts = ref([
-  { name: '高级蜂蜜礼盒装', sales: 256, price: 299.00, inventory: 120 },
-  { name: '野生百花蜜500g', sales: 198, price: 128.00, inventory: 85 },
-  { name: '有机蜂王浆100g', sales: 156, price: 168.00, inventory: 42 },
-  { name: '蜂胶滴剂30ml', sales: 142, price: 98.00, inventory: 63 },
-  { name: '蜂蜜柚子茶300g', sales: 135, price: 78.00, inventory: 94 }
-])
-
-// 获取订单状态类型
-const getOrderStatusType = (status: string) => {
-  const statusMap: Record<string, string> = {
-    pending: 'warning',
-    processing: 'primary',
-    completed: 'success',
-    cancelled: 'danger'
+// 测试权限接口
+const testPermission = async () => {
+  try {
+    const response = await request({
+      url: '/api/v1/user/test-permission',
+      method: 'get'
+    })
+    ElMessage({
+      message: response.data || '权限测试成功',
+      type: 'success'
+    })
+  } catch (error: any) {
+    ElMessage({
+      message: error.message || '权限测试失败',
+      type: 'error'
+    })
   }
-  return statusMap[status] || 'info'
 }
 
-// 获取订单状态文本
-const getOrderStatusText = (status: string) => {
-  const statusMap: Record<string, string> = {
-    pending: '待处理',
-    processing: '处理中',
-    completed: '已完成',
-    cancelled: '已取消'
+// 刷新用户信息
+const refreshUserInfo = async () => {
+  try {
+    await userStore.getInfo()
+    ElMessage({
+      message: '用户信息刷新成功',
+      type: 'success'
+    })
+  } catch (error: any) {
+    ElMessage({
+      message: '刷新用户信息失败',
+      type: 'error'
+    })
   }
-  return statusMap[status] || '未知状态'
 }
 
-// 跳转到订单页面
-const goToOrders = () => {
-  router.push('/order')
-}
-
-// 跳转到商品页面
-const goToProducts = () => {
-  router.push('/product')
+// 显示Token信息
+const showTokenInfo = () => {
+  const tokenInfo = {
+    token: userStore.token ? userStore.token.substring(0, 20) + '...' : '无',
+    tokenName: localStorage.getItem('tokenName') || '无',
+    isLoggedIn: userStore.isLoggedIn
+  }
+  
+  ElMessageBox.alert(
+    `Token: ${tokenInfo.token}\nToken名称: ${tokenInfo.tokenName}\n登录状态: ${tokenInfo.isLoggedIn ? '已登录' : '未登录'}`,
+    'Token信息',
+    {
+      confirmButtonText: '确定'
+    }
+  )
 }
 
 onMounted(() => {
-  // 这里可以添加获取仪表盘数据的API调用
-  // 例如: fetchDashboardData()
+  // 页面加载时确保用户信息是最新的
+  if (userStore.isLoggedIn && !userStore.userInfo.id) {
+    userStore.getInfo()
+  }
 })
 </script>
 
 <style lang="scss" scoped>
-.dashboard-container {
-  padding: 20px 0;
+.dashboard {
+  padding: 20px;
+}
 
-  .stat-card {
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-
-    .card-content {
-      display: flex;
-      align-items: center;
-
-      .card-info {
-        margin-left: 20px;
-
-        .card-value {
-          font-size: 24px;
-          font-weight: bold;
-          color: #303133;
-        }
-
-        .card-title {
-          margin-top: 5px;
-          font-size: 14px;
-          color: #909399;
-        }
+.welcome-card {
+  .welcome-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    
+    .user-info {
+      h3 {
+        margin: 0 0 8px 0;
+        color: #303133;
+      }
+      
+      p {
+        margin: 0;
+        color: #909399;
       }
     }
   }
+}
 
-  .chart-row {
-    margin-bottom: 20px;
-
-    .chart-card {
-      height: 400px;
-      margin-bottom: 20px;
-
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+.stat-card {
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    
+    .stat-icon {
+      font-size: 40px;
+    }
+    
+    .stat-content {
+      .stat-number {
+        font-size: 24px;
+        font-weight: bold;
+        color: #303133;
+        margin-bottom: 4px;
       }
-
-      .chart-container {
-        height: 320px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        .chart-placeholder {
-          color: #909399;
-          font-size: 16px;
-        }
+      
+      .stat-label {
+        font-size: 14px;
+        color: #909399;
       }
     }
   }
+}
 
-  .table-row {
-    .table-card {
-      margin-bottom: 20px;
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
 
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
+.permission-info {
+  .permission-section {
+    margin-bottom: 20px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    h4 {
+      margin: 0 0 12px 0;
+      color: #303133;
+      font-size: 14px;
+    }
+    
+    .empty-text {
+      color: #909399;
+      font-size: 14px;
     }
   }
 }

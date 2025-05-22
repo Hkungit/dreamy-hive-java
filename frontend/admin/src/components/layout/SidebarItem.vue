@@ -30,7 +30,6 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps } from 'vue'
 import path from 'path-browserify'
 
 const props = defineProps({

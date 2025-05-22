@@ -1,6 +1,7 @@
 package com.dreamy.hive.controller.v1.admin;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.Spu;
 import com.dreamy.hive.service.SpuService;

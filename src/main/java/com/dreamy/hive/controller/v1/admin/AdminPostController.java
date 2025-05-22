@@ -4,6 +4,8 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dreamy.hive.annotation.RequiresPermission;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.Post;
 import com.dreamy.hive.service.PostService;
@@ -20,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/posts")
 @Tag(name = "后台帖子管理", description = "后台帖子管理相关接口")
-@SaCheckRole("admin")
 public class AdminPostController {
 
     @Autowired

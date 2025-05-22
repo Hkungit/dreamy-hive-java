@@ -23,14 +23,23 @@ public class SaTokenConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 注册 Sa-Token 拦截器，定义拦截规则
         registry.addInterceptor(new SaInterceptor(handler -> {
-            // 指定路由拦截
-            SaRouter.match("/api/admin/**", r -> StpUtil.checkRole("admin"));
+            // 指定路由拦截 - 允许super_admin和admin角色访问管理员接口
+            SaRouter.match("/v1/admin/**", r -> {
+                // 检查用户是否拥有super_admin或admin角色
+                if (StpUtil.hasRole("super_admin") || StpUtil.hasRole("admin")) {
+                    // 有权限，继续执行
+                    return;
+                } else {
+                    // 没有权限，抛出异常
+                    StpUtil.checkRole("admin"); // 这会抛出角色不足的异常
+                }
+            });
 
             // 可以添加其他匹配规则
-            // SaRouter.match("/api/user/**", r -> StpUtil.checkLogin());
+            // SaRouter.match("/v1/user/**", r -> StpUtil.checkLogin());
         })).addPathPatterns("/**");
         
-        System.out.println("[Sa-Token] 已放行 Swagger/Knife4j 相关资源路径");
+        System.out.println("[Sa-Token] 已配置管理员权限拦截：允许super_admin和admin角色访问");
     }
     
     /**

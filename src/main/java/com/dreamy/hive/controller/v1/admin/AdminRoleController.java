@@ -1,5 +1,7 @@
 package com.dreamy.hive.controller.v1.admin;
 
+import com.dreamy.hive.annotation.RequiresPermission;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.Role;
 import com.dreamy.hive.service.RoleService;
@@ -11,10 +13,9 @@ import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.List;
 
-@Tag(name = "后台角色管理", description = "管理员角色管理相关接口")
 @RestController
-@RequestMapping("/api/v1/admin/role")
-@SaCheckRole("admin")
+@RequestMapping("/v1/admin/role")
+@Tag(name = "管理端-角色管理", description = "管理端角色相关接口")
 public class AdminRoleController {
     @Autowired
     private RoleService roleService;

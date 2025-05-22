@@ -1,5 +1,6 @@
 package com.dreamy.hive.controller.v1.admin;
 
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.Attribute;
 import com.dreamy.hive.service.AttributeService;
@@ -14,8 +15,8 @@ import java.util.List;
  * 商品属性管理控制器
  */
 @RestController
-@RequestMapping("/api/v1/admin/attributes")
-@Tag(name = "属性管理", description = "商品属性管理相关接口")
+@RequestMapping("/v1/admin/attributes")
+@Tag(name = "管理端-商品属性管理", description = "管理端商品属性相关接口")
 public class AttributeController {
 
     @Autowired

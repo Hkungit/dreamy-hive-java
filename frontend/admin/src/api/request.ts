@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { getToken, getTokenName, clearAuth } from '../utils/auth'
 
 // 创建axios实例
 const service = axios.create({
@@ -11,12 +12,12 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     // 从localStorage获取token并添加到请求头
-    const token = localStorage.getItem('token')
-    const tokenName = localStorage.getItem('tokenName') || 'satoken'
+    const token = getToken()
+    const tokenName = getTokenName()
     
     if (token) {
-      // 根据后端要求设置token请求头，添加Bearer前缀
-      config.headers[tokenName] = `Bearer ${token}`
+      // SA-Token直接使用token值，不需要Bearer前缀
+      config.headers[tokenName] = token
     }
     return config
   },
@@ -38,11 +39,10 @@ service.interceptors.response.use(
         type: 'error',
         duration: 5 * 1000
       })
-      
-      // 401: 未登录或token过期
+        // 401: 未登录或token过期
       if (res.code === 401) {
         // 重新登录
-        localStorage.removeItem('token')
+        clearAuth()
         location.href = '/login'
       }
       
@@ -56,11 +56,10 @@ service.interceptors.response.use(
     let message = error.message || '请求失败'
     
     if (error.response) {
-      switch (error.response.status) {
-        case 401:
+      switch (error.response.status) {        case 401:
           message = '未授权，请重新登录'
           // 重新登录
-          localStorage.removeItem('token')
+          clearAuth()
           location.href = '/login'
           break
         case 403:

@@ -1,6 +1,8 @@
 package com.dreamy.hive.controller.v1.admin;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.dreamy.hive.annotation.RequiresPermission;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.Category;
 import com.dreamy.hive.service.CategoryService;
@@ -15,7 +17,7 @@ import java.util.List;
  * 管理端商品分类控制器
  */
 @RestController
-@RequestMapping("/api/v1/admin/categories")
+@RequestMapping("/v1/admin/categories")
 @Tag(name = "管理端-商品分类", description = "管理端商品分类相关接口")
 public class AdminCategoryController {
 

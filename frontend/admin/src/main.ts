@@ -6,6 +6,7 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import pinia from './store'
+import { setupPermissionDirectives } from './directives/permission'
 
 // 创建Vue应用实例
 const app = createApp(App)
@@ -19,6 +20,9 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(ElementPlus)
 app.use(router)
 app.use(pinia)
+
+// 注册权限指令
+setupPermissionDirectives(app)
 
 // 挂载应用
 app.mount('#app')

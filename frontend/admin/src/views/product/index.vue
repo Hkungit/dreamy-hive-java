@@ -44,18 +44,30 @@
       >
         <el-table-column type="index" width="50" />
         <el-table-column prop="name" label="商品名称" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="categoryName" label="分类" width="120" />
-        <el-table-column prop="price" label="价格" width="100">
+        <el-table-column prop="categoryName" label="分类" width="120">
           <template #default="scope">
-            ¥{{ scope.row.price.toFixed(2) }}
+            {{ scope.row.categoryName || '未知分类' }}
           </template>
         </el-table-column>
-        <el-table-column prop="stock" label="库存" width="80" />
-        <el-table-column prop="sales" label="销量" width="80" />
+        <el-table-column prop="price" label="价格" width="100">
+          <template #default="scope">
+            ¥{{ scope.row.price ? scope.row.price.toFixed(2) : '0.00' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="stock" label="库存" width="80">
+          <template #default="scope">
+            {{ scope.row.stock || 0 }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="sales" label="销量" width="80">
+          <template #default="scope">
+            {{ scope.row.sales || 0 }}
+          </template>
+        </el-table-column>
         <el-table-column prop="status" label="状态" width="80">
           <template #default="scope">
-            <el-tag :type="scope.row.status === '1' ? 'success' : 'info'">
-              {{ scope.row.status === '1' ? '上架' : '下架' }}
+            <el-tag :type="scope.row.status === 1 ? 'success' : 'info'">
+              {{ scope.row.status === 1 ? '上架' : '下架' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -67,10 +79,10 @@
             <el-button
               type="primary"
               link
-              :type="scope.row.status === '1' ? 'danger' : 'success'"
+              :type="scope.row.status === 1 ? 'danger' : 'success'"
               @click="handleStatusChange(scope.row)"
             >
-              {{ scope.row.status === '1' ? '下架' : '上架' }}
+              {{ scope.row.status === 1 ? '下架' : '上架' }}
             </el-button>
             <el-button type="danger" link @click="handleDelete(scope.row)">删除</el-button>
           </template>
@@ -134,7 +146,7 @@ const getList = async () => {
   loading.value = true
   try {
     const res = await getProductList(queryParams)
-    productList.value = res.data.list
+    productList.value = res.data.records
     total.value = res.data.total
   } catch (error) {
     console.error('获取商品列表失败', error)
@@ -186,8 +198,8 @@ const handleViewSku = (row: any) => {
 
 // 修改状态
 const handleStatusChange = async (row: any) => {
-  const newStatus = row.status === '1' ? '0' : '1'
-  const statusText = newStatus === '1' ? '上架' : '下架'
+  const newStatus = row.status === 1 ? 0 : 1
+  const statusText = newStatus === 1 ? '上架' : '下架'
   
   try {
     await ElMessageBox.confirm(`确认要${statusText}该商品吗?`, '提示', {

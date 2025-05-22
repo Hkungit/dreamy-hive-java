@@ -1,5 +1,7 @@
 package com.dreamy.hive.controller.v1.admin;
 
+import com.dreamy.hive.annotation.RequiresPermission;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.dto.request.SkuWithAttributesDTO;
 import com.dreamy.hive.entity.Sku;
@@ -15,8 +17,8 @@ import java.util.List;
  * 商品SKU管理控制器
  */
 @RestController
-@RequestMapping("/api/v1/admin/skus")
-@Tag(name = "SKU管理", description = "商品SKU管理相关接口")
+@RequestMapping("/v1/admin/skus")
+@Tag(name = "管理端-SKU管理", description = "管理端SKU相关接口")
 public class SkuController {
 
     @Autowired

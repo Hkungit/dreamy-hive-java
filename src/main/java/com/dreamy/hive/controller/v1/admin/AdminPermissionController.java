@@ -1,5 +1,7 @@
 package com.dreamy.hive.controller.v1.admin;
 
+import com.dreamy.hive.annotation.RequiresPermission;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.entity.Permission;
 import com.dreamy.hive.service.PermissionService;
@@ -9,10 +11,9 @@ import cn.dev33.satoken.annotation.SaCheckRole;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
-@Tag(name = "后台权限管理", description = "管理员权限管理相关接口")
 @RestController
-@RequestMapping("/api/v1/admin/permission")
-@SaCheckRole("admin")
+@RequestMapping("/v1/admin/permission")
+@Tag(name = "管理端-权限管理", description = "管理端权限相关接口")
 public class AdminPermissionController {
     @Autowired
     private PermissionService permissionService;

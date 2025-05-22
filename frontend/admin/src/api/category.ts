@@ -3,7 +3,7 @@ import request from './request'
 // 获取分类列表
 export function getCategoryList(params?: any) {
   return request({
-    url: '/admin/categories',
+    url: '/v1/admin/categories',
     method: 'get',
     params
   })
@@ -12,7 +12,7 @@ export function getCategoryList(params?: any) {
 // 获取分类树结构
 export function getCategoryTree() {
   return request({
-    url: '/admin/categories/tree',
+    url: '/v1/admin/categories/tree',
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getCategoryTree() {
 // 获取分类详情
 export function getCategoryDetail(id: string) {
   return request({
-    url: `/admin/categories/${id}`,
+    url: `/v1/admin/categories/${id}`,
     method: 'get'
   })
 }
@@ -28,7 +28,7 @@ export function getCategoryDetail(id: string) {
 // 添加分类
 export function addCategory(data: any) {
   return request({
-    url: '/admin/categories',
+    url: '/v1/admin/categories',
     method: 'post',
     data
   })
@@ -37,7 +37,7 @@ export function addCategory(data: any) {
 // 更新分类
 export function updateCategory(id: string, data: any) {
   return request({
-    url: `/admin/categories/${id}`,
+    url: `/v1/admin/categories/${id}`,
     method: 'put',
     data
   })
@@ -46,7 +46,7 @@ export function updateCategory(id: string, data: any) {
 // 删除分类
 export function deleteCategory(id: string) {
   return request({
-    url: `/admin/categories/${id}`,
+    url: `/v1/admin/categories/${id}`,
     method: 'delete'
   })
 }

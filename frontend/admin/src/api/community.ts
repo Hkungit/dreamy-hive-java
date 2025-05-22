@@ -3,7 +3,7 @@ import request from './request'
 // 获取帖子列表
 export function getPostList(params: any) {
   return request({
-    url: '/admin/community/posts',
+    url: '/v1/admin/community/posts',
     method: 'get',
     params
   })
@@ -12,7 +12,7 @@ export function getPostList(params: any) {
 // 获取帖子详情
 export function getPostDetail(id: string) {
   return request({
-    url: `/admin/community/posts/${id}`,
+    url: `/v1/admin/community/posts/${id}`,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getPostDetail(id: string) {
 // 审核帖子
 export function reviewPost(id: string, status: string, reason?: string) {
   return request({
-    url: `/admin/community/posts/${id}/review`,
+    url: `/v1/admin/community/posts/${id}/review`,
     method: 'put',
     data: { status, reason }
   })
@@ -29,7 +29,7 @@ export function reviewPost(id: string, status: string, reason?: string) {
 // 删除帖子
 export function deletePost(id: string) {
   return request({
-    url: `/admin/community/posts/${id}`,
+    url: `/v1/admin/community/posts/${id}`,
     method: 'delete'
   })
 }
@@ -37,7 +37,7 @@ export function deletePost(id: string) {
 // 获取评论列表
 export function getCommentList(params: any) {
   return request({
-    url: '/admin/community/comments',
+    url: '/v1/admin/community/comments',
     method: 'get',
     params
   })
@@ -46,7 +46,7 @@ export function getCommentList(params: any) {
 // 审核评论
 export function reviewComment(id: string, status: string, reason?: string) {
   return request({
-    url: `/admin/community/comments/${id}/review`,
+    url: `/v1/admin/community/comments/${id}/review`,
     method: 'put',
     data: { status, reason }
   })
@@ -55,7 +55,7 @@ export function reviewComment(id: string, status: string, reason?: string) {
 // 删除评论
 export function deleteComment(id: string) {
   return request({
-    url: `/admin/community/comments/${id}`,
+    url: `/v1/admin/community/comments/${id}`,
     method: 'delete'
   })
 }

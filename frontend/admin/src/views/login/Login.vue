@@ -19,6 +19,7 @@
           type="text"
           tabindex="1"
           autocomplete="on"
+          :disabled="loading"
         >
           <template #prefix>
             <el-icon><User /></el-icon>
@@ -33,6 +34,7 @@
           placeholder="密码"
           tabindex="2"
           autocomplete="on"
+          :disabled="loading"
           @keyup.enter="handleLogin"
         >
           <template #prefix>
@@ -56,21 +58,27 @@
         style="width: 100%; margin-bottom: 30px"
         @click="handleLogin"
       >
-        登录
+        {{ loading ? '登录中...' : '登录' }}
       </el-button>
+
+      <div class="tips">
+        <span style="margin-right: 20px;">测试账号: admin</span>
+        <span>测试密码: 123456</span>
+      </div>
     </el-form>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock, View, Hide } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '../../store/modules/user'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 
 const loginFormRef = ref<FormInstance>()
@@ -78,33 +86,48 @@ const loading = ref(false)
 const passwordVisible = ref(false)
 
 const loginForm = reactive({
-  username: '',
-  password: ''
+  username: 'admin',
+  password: '123456'
 })
 
 const loginRules = reactive<FormRules>({
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度在 6 到 20 个字符', trigger: 'blur' }
+  ]
 })
 
 const handleLogin = async () => {
   if (!loginFormRef.value) return
   
   await loginFormRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
+    if (valid) {      loading.value = true
       try {
-        const result = await userStore.login(loginForm.username, loginForm.password)
-        router.push({ path: '/' })
+        await userStore.login(loginForm.username, loginForm.password)
+        
+        // 获取重定向路径
+        const redirect = route.query.redirect as string || '/'
+        
         ElMessage({
-          message: result.message || '登录成功',
+          message: '登录成功',
           type: 'success'
         })
+        
+        // 延迟跳转，让用户看到成功消息
+        setTimeout(() => {
+          router.push(redirect)
+        }, 500)
+        
       } catch (error: any) {
         console.error('登录失败:', error)
         ElMessage({
           message: error.message || '用户名或密码错误，请重试',
-          type: 'error'
+          type: 'error',
+          duration: 3000
         })
       } finally {
         loading.value = false
@@ -112,6 +135,14 @@ const handleLogin = async () => {
     }
   })
 }
+
+// 检查是否已登录
+onMounted(() => {
+  if (userStore.isLoggedIn) {
+    const redirect = route.query.redirect as string || '/'
+    router.push(redirect)
+  }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -144,6 +175,13 @@ const handleLogin = async () => {
       text-align: center;
       font-weight: bold;
     }
+  }
+
+  .tips {
+    font-size: 14px;
+    color: #889aa4;
+    margin-bottom: 10px;
+    text-align: center;
   }
 
   :deep(.el-input) {
@@ -179,6 +217,7 @@ const handleLogin = async () => {
   .show-pwd {
     color: #889aa4;
     cursor: pointer;
+    user-select: none;
   }
 }
 </style>

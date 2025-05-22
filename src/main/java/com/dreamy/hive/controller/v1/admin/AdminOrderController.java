@@ -2,16 +2,20 @@ package com.dreamy.hive.controller.v1.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.dreamy.hive.annotation.CurrentUser;
+import com.dreamy.hive.annotation.RequiresPermission;
+import com.dreamy.hive.annotation.RequiresRole;
 import com.dreamy.hive.common.Result;
 import com.dreamy.hive.dto.response.OrderResponseDTO;
 import com.dreamy.hive.service.admin.AdminOrderService;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 /**
  * 管理端订单控制器
  */
 @RestController
-@RequestMapping("/api/v1/admin/orders")
+@RequestMapping("/v1/admin/orders")
+@Tag(name = "管理端-订单管理", description = "管理端订单相关接口")
 public class AdminOrderController {
 
     private final AdminOrderService adminOrderService;

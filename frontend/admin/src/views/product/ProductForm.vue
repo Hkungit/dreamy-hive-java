@@ -19,7 +19,14 @@
         </el-form-item>
 
         <el-form-item label="商品分类" prop="categoryId">
-          <el-select v-model="form.categoryId" placeholder="请选择商品分类" style="width: 100%">
+          <el-select 
+            v-model="form.categoryId" 
+            placeholder="请选择商品分类" 
+            style="width: 100%"
+            :loading="categoryLoading"
+            @focus="handleCategoryFocus"
+            clearable
+          >
             <el-option
               v-for="item in categoryOptions"
               :key="item.value"
@@ -111,7 +118,33 @@ import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules, UploadProps } from 'element-plus'
 import { getProductDetail, addProduct, updateProduct } from '../../api/product'
-import { getCategoryList } from '../../api/category'
+import { getCategoryTree } from '../../api/category'
+
+// 定义分类选项类型
+interface CategoryOption {
+  value: string | number
+  label: string
+}
+
+// 定义图片项类型
+interface ImageItem {
+  name: string
+  url: string
+}
+
+// 定义表单数据类型
+interface ProductForm {
+  id: string
+  name: string
+  categoryId: string
+  price: number
+  stock: number
+  status: string
+  mainImage: string
+  images: string[]
+  brief: string
+  detail: string
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -123,7 +156,7 @@ const isEdit = computed(() => {
 })
 
 // 表单数据
-const form = reactive({
+const form = reactive<ProductForm>({
   id: '',
   name: '',
   categoryId: '',
@@ -131,16 +164,19 @@ const form = reactive({
   stock: 0,
   status: '1',
   mainImage: '',
-  images: [] as string[],
+  images: [],
   brief: '',
   detail: ''
 })
 
 // 图片列表
-const imageList = ref<any[]>([])
+const imageList = ref<ImageItem[]>([])
 
 // 分类选项
-const categoryOptions = ref<any[]>([])
+const categoryOptions = ref<CategoryOption[]>([])
+
+// 分类加载状态
+const categoryLoading = ref(false)
 
 // 上传请求头（携带token）
 const uploadHeaders = computed(() => {
@@ -172,18 +208,53 @@ const rules = reactive<FormRules>({
   ]
 })
 
+// 扁平化树形分类数据
+const flattenCategories = (categories: any[]): any[] => {
+  const result: any[] = []
+  
+  const flatten = (items: any[], level = 0) => {
+    items.forEach(item => {
+      // 添加当前分类
+      result.push({
+        ...item,
+        level,
+        displayName: '　'.repeat(level) + item.name // 添加缩进显示层级
+      })
+      
+      // 递归处理子分类
+      if (item.children && item.children.length > 0) {
+        flatten(item.children, level + 1)
+      }
+    })
+  }
+  
+  flatten(categories)
+  return result
+}
+
 // 获取分类选项
 const getCategoryOptions = async () => {
   try {
-    const res = await getCategoryList()
-    categoryOptions.value = res.data.map((item: any) => {
+    categoryLoading.value = true
+    const res = await getCategoryTree()
+    // 处理树形数据结构
+    const categories = res.data || []
+    
+    // 扁平化树形数据以便在选择器中显示
+    const flatCategories = flattenCategories(categories)
+    
+    categoryOptions.value = flatCategories.map((item: any): CategoryOption => {
       return {
         value: item.id,
-        label: item.name
+        label: item.displayName || item.name
       }
     })
+    console.log('分类选项加载成功:', categoryOptions.value)
   } catch (error) {
     console.error('获取分类列表失败', error)
+    ElMessage.error('获取分类列表失败')
+  } finally {
+    categoryLoading.value = false
   }
 }
 
@@ -193,16 +264,21 @@ const getDetail = async (id: string) => {
     const res = await getProductDetail(id)
     const productData = res.data
     
-    // 填充表单数据
-    Object.keys(form).forEach(key => {
-      if (key in productData) {
-        form[key as keyof typeof form] = productData[key]
-      }
-    })
+    // 填充表单数据 - 使用类型安全的方式
+    if (productData.id) form.id = productData.id
+    if (productData.name) form.name = productData.name
+    if (productData.categoryId) form.categoryId = productData.categoryId
+    if (productData.price !== undefined) form.price = productData.price
+    if (productData.stock !== undefined) form.stock = productData.stock
+    if (productData.status) form.status = productData.status
+    if (productData.mainImage) form.mainImage = productData.mainImage
+    if (productData.images) form.images = productData.images
+    if (productData.brief) form.brief = productData.brief
+    if (productData.detail) form.detail = productData.detail
     
     // 处理图片列表
     if (productData.images && productData.images.length > 0) {
-      imageList.value = productData.images.map((url: string) => {
+      imageList.value = productData.images.map((url: string): ImageItem => {
         return {
           name: url.substring(url.lastIndexOf('/') + 1),
           url
@@ -232,9 +308,11 @@ const handleImageSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
 
 // 图片集移除回调
 const handleImageRemove: UploadProps['onRemove'] = (uploadFile) => {
-  const index = form.images.indexOf(uploadFile.url)
-  if (index !== -1) {
-    form.images.splice(index, 1)
+  if (uploadFile.url) {
+    const index = form.images.indexOf(uploadFile.url)
+    if (index !== -1) {
+      form.images.splice(index, 1)
+    }
   }
 }
 
@@ -279,12 +357,17 @@ const cancel = () => {
   router.push('/product')
 }
 
+// 处理分类选择器聚焦事件
+const handleCategoryFocus = () => {
+  getCategoryOptions()
+}
+
 onMounted(() => {
   getCategoryOptions()
   
   // 如果是编辑模式，获取商品详情
-  if (isEdit.value && route.params.id) {
-    getDetail(route.params.id as string)
+  if (isEdit.value && route.params.id && typeof route.params.id === 'string') {
+    getDetail(route.params.id)
   }
 })
 </script>
