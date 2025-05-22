@@ -65,6 +65,7 @@
               {{ scope.row.status === '1' ? '禁用' : '启用' }}
             </el-button>
             <el-button type="primary" link @click="handleResetPassword(scope.row)">重置密码</el-button>
+            <el-button type="primary" link @click="handleOpenAssignRoleDialog(scope.row)">角色分配</el-button>
             <el-button type="danger" link @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -173,15 +174,41 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- Assign Role Dialog -->
+    <el-dialog
+      v-model="assignRoleDialogVisible"
+      title="分配角色"
+      width="500px"
+      append-to-body
+      @close="editingUserId = null; currentUserRoles = []"
+    >
+      <el-checkbox-group v-model="currentUserRoles">
+        <el-checkbox
+          v-for="role in allRoles"
+          :key="role.id"
+          :label="role.id"
+        >
+          {{ role.name }}
+        </el-checkbox>
+      </el-checkbox-group>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="assignRoleDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSubmitAssignRoles">确定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElCheckboxGroup, ElCheckbox } from 'element-plus' // Assuming ElCheckbox might be needed
 import { Plus } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules, UploadProps } from 'element-plus'
-import { getUserList, addUser, updateUser, deleteUser } from '../../api/user'
+import { getUserList, addUser, updateUser, deleteUser, getUserRoles, assignUserRoles } from '../../api/user'
+import { getRoleList } from '../../api/role'
 
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -193,7 +220,14 @@ const total = ref(0)
 // 重置密码相关
 const resetPwdDialogVisible = ref(false)
 const resetPwdFormRef = ref<FormInstance>()
-const currentUserId = ref('')
+const currentUserId = ref('') // Used for password reset, distinct from editingUserId for roles
+
+// Role Assignment Dialog
+const assignRoleDialogVisible = ref(false)
+const currentUserRoles = ref<string[]>([])
+const allRoles = ref<any[]>([])
+const editingUserId = ref<string | null>(null)
+
 
 // 查询参数
 const queryParams = reactive({
@@ -460,6 +494,73 @@ const submitForm = async () => {
 onMounted(() => {
   getList()
 })
+
+// --- Role Assignment Logic ---
+
+const fetchAllRoles = async () => {
+  try {
+    // Assuming getRoleList can fetch all roles without pagination or with a large enough page size
+    const res = await getRoleList({ pageNum: 1, pageSize: 999 }); // Adjust if API differs
+    if (res.data && res.data.list) {
+      allRoles.value = res.data.list;
+    } else if (Array.isArray(res.data)) { // Fallback if data is directly an array
+      allRoles.value = res.data;
+    } else {
+      allRoles.value = [];
+      console.warn('fetchAllRoles: Unexpected response structure for roles list', res);
+    }
+  } catch (error) {
+    console.error('获取所有角色列表失败', error);
+    ElMessage.error('获取所有角色列表失败');
+    allRoles.value = []; // Ensure it's an array on error
+  }
+};
+
+const fetchUserAssignedRoles = async (userId: string) => {
+  try {
+    const res = await getUserRoles(userId);
+    // Assuming res.data is an array of role IDs, e.g., ["1", "2"]
+    currentUserRoles.value = res.data || []; 
+  } catch (error) {
+    console.error('获取用户角色失败', error);
+    ElMessage.error('获取用户角色失败');
+    currentUserRoles.value = []; // Ensure it's an array on error
+  }
+};
+
+const handleOpenAssignRoleDialog = async (row: any) => {
+  editingUserId.value = row.id;
+  currentUserRoles.value = []; // Reset before fetching
+  
+  // Fetch all available roles first
+  await fetchAllRoles(); 
+  
+  // Then fetch the roles assigned to the current user
+  if (editingUserId.value) {
+    await fetchUserAssignedRoles(editingUserId.value);
+  }
+  
+  assignRoleDialogVisible.value = true;
+};
+
+// Placeholder for handleSubmitAssignRoles - will be implemented in the next step
+const handleSubmitAssignRoles = async () => {
+  if (!editingUserId.value) {
+    ElMessage.error('没有指定用户ID');
+    return;
+  }
+  try {
+    await assignUserRoles(editingUserId.value, { roleIds: currentUserRoles.value });
+    ElMessage.success('角色分配成功');
+    assignRoleDialogVisible.value = false;
+    // Optionally, refresh user list or specific user data if role display is part of the main table
+    // getList(); 
+  } catch (error) {
+    console.error('角色分配失败', error);
+    ElMessage.error('角色分配失败');
+  }
+};
+
 </script>
 
 <style lang="scss" scoped>

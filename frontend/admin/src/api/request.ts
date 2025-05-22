@@ -29,7 +29,7 @@ service.interceptors.response.use(
     const res = response.data
     
     // 如果返回的状态码不是200，则判断为错误
-    if (res.code !== 200) {
+    if (res.code !== 0) { // Align with adminApi.md where success code is 0
       ElMessage({
         message: res.message || '请求错误',
         type: 'error',

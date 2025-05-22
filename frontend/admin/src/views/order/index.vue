@@ -83,7 +83,7 @@
               v-if="scope.row.status === 'processing'"
               type="primary"
               link
-              @click="handleUpdateStatus(scope.row, 'shipping')"
+              @click="handleOpenShipDialog(scope.row)"
             >
               发货
             </el-button>
@@ -125,14 +125,27 @@
 <script lang="ts" setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderList, updateOrderStatus } from '../../api/order'
+import { ElMessage, ElMessageBox, FormInstance, FormRules } from 'element-plus'
+import { getOrderList, updateOrderStatus, shipOrder } from '../../api/order'
 
 const router = useRouter()
 const loading = ref(false)
 const orderList = ref([])
 const total = ref(0)
 const dateRange = ref<string[]>([])
+
+// Shipping Dialog Data
+const shipDialogVisible = ref(false);
+const currentShippingOrder = ref<any>(null);
+const shipFormRef = ref<FormInstance>();
+const shipForm = reactive({
+  deliveryCompany: '',
+  deliverySn: ''
+});
+const shipRules: FormRules = {
+  deliveryCompany: [{ required: true, message: '请输入快递公司', trigger: 'blur' }],
+  deliverySn: [{ required: true, message: '请输入快递单号', trigger: 'blur' }]
+};
 
 // 订单状态选项
 const orderStatusOptions = [
@@ -255,7 +268,7 @@ const handleUpdateStatus = async (row: any, status: string) => {
       type: 'warning'
     })
     
-    await updateOrderStatus(row.id, status)
+    await updateOrderStatus(row.id, { status: status /*, note: 'Optional note if ever added' */ })
     ElMessage.success('订单状态更新成功')
     getList()
   } catch (error: any) {
@@ -268,6 +281,40 @@ const handleUpdateStatus = async (row: any, status: string) => {
 onMounted(() => {
   getList()
 })
+
+// --- Shipping Logic ---
+const handleOpenShipDialog = (row: any) => {
+  currentShippingOrder.value = row;
+  shipForm.deliveryCompany = '';
+  shipForm.deliverySn = '';
+  if (shipFormRef.value) { // Clear validation state if form was previously used
+      shipFormRef.value.resetFields();
+  }
+  shipDialogVisible.value = true;
+};
+
+const handleSubmitShipOrder = async () => {
+  if (!shipFormRef.value) return;
+  await shipFormRef.value.validate(async (valid) => {
+    if (valid) {
+      if (!currentShippingOrder.value || !currentShippingOrder.value.id) {
+        ElMessage.error('当前订单信息丢失，请重试');
+        return;
+      }
+      try {
+        await shipOrder(currentShippingOrder.value.id, shipForm);
+        ElMessage.success('发货成功');
+        // The subtask mentions that shipOrder API should ideally update the status.
+        // If it doesn't, the line below can be uncommented or handled by backend.
+        // await updateOrderStatus(currentShippingOrder.value.id, { status: 'shipping' });
+        shipDialogVisible.value = false;
+        getList(); // Refresh the order list
+      } catch (error: any) {
+        ElMessage.error(error.message || '发货失败');
+      }
+    }
+  });
+};
 </script>
 
 <style lang="scss" scoped>

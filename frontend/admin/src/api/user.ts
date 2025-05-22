@@ -62,3 +62,20 @@ export function deleteUser(id: string) {
     method: 'delete'
   })
 }
+
+// 获取用户角色ID列表
+export function getUserRoles(userId: string) {
+  return request({
+    url: `/admin/users/${userId}/roles`,
+    method: 'get',
+  });
+}
+
+// 为用户分配角色
+export function assignUserRoles(userId: string, data: { roleIds: string[] }) {
+  return request({
+    url: `/admin/users/${userId}/roles`,
+    method: 'put',
+    data, // { "roleIds": ["1", "2"] }
+  });
+}

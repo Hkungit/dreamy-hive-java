@@ -112,6 +112,8 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus' // Import ElMessage
+import { getOrderStats } from '../../api/order' // Import getOrderStats
 import { 
   ShoppingCart, 
   Goods, 
@@ -121,6 +123,8 @@ import {
 
 const router = useRouter()
 const salesTimeRange = ref('month')
+const loading = ref(false) // Add loading state
+const dashboardStats = ref<any>({}) // Add dashboardStats state
 
 // 统计卡片数据
 const statCards = ref([
@@ -183,7 +187,65 @@ const goToProducts = () => {
 onMounted(() => {
   // 这里可以添加获取仪表盘数据的API调用
   // 例如: fetchDashboardData()
+  fetchDashboardData();
 })
+
+// Fetch dashboard data
+const fetchDashboardData = async () => {
+  loading.value = true;
+  try {
+    const res = await getOrderStats();
+    // Assuming the API directly returns the data object upon success (code === 0 handled by interceptor)
+    dashboardStats.value = res.data; 
+
+    // Update statCards based on fetched data
+    const todayOrderCard = statCards.value.find(card => card.title === '今日订单');
+    if (todayOrderCard) {
+      todayOrderCard.value = dashboardStats.value.todayOrderCount !== undefined ? dashboardStats.value.todayOrderCount : 'N/A';
+    }
+
+    const totalSalesCard = statCards.value.find(card => card.title === '总销售额');
+    if (totalSalesCard) {
+      totalSalesCard.value = dashboardStats.value.totalSalesAmount !== undefined 
+        ? `¥${parseFloat(dashboardStats.value.totalSalesAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+        : 'N/A';
+    }
+
+    const productCountCard = statCards.value.find(card => card.title === '商品总数');
+    if (productCountCard) {
+      // Assuming getOrderStats does not return product count, keep static or set to N/A
+      // If it did, it would be:
+      // productCountCard.value = dashboardStats.value.totalProductCount !== undefined ? dashboardStats.value.totalProductCount : 'N/A';
+      // For now, we'll let it keep its initial static value if not provided by API.
+      if (dashboardStats.value.totalProductCount !== undefined) {
+        productCountCard.value = dashboardStats.value.totalProductCount;
+      }
+      // else, it keeps its static value
+    }
+
+    const userCountCard = statCards.value.find(card => card.title === '用户总数');
+    if (userCountCard) {
+      // Assuming getOrderStats does not return user count, keep static or set to N/A
+      // if (dashboardStats.value.totalUserCount !== undefined) {
+      //   userCountCard.value = dashboardStats.value.totalUserCount;
+      // }
+      // For now, let it keep its initial static value if not provided by API.
+      if (dashboardStats.value.totalUserCount !== undefined) {
+        userCountCard.value = dashboardStats.value.totalUserCount;
+      }
+      // else, it keeps its static value
+    }
+
+  } catch (error) {
+    console.error("获取仪表盘统计数据失败:", error);
+    ElMessage.error('获取仪表盘统计数据失败');
+    // Optionally set cards to 'N/A' on error too
+    statCards.value.forEach(card => card.value = 'N/A');
+  } finally {
+    loading.value = false;
+  }
+};
+
 </script>
 
 <style lang="scss" scoped>

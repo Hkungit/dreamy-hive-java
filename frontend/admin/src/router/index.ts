@@ -11,6 +11,8 @@ import Order from '../views/order/index.vue'
 import OrderDetail from '../views/order/OrderDetail.vue'
 import Community from '../views/community/index.vue'
 import User from '../views/user/index.vue'
+import RoleManagement from '../views/role/RoleManagement.vue' // Import RoleManagement
+import PermissionManagement from '../views/permission/PermissionManagement.vue' // Import PermissionManagement
 import Login from '../views/login/Login.vue'
 import NotFound from '../views/error/404.vue'
 
@@ -98,6 +100,18 @@ const routes: Array<AppRouteRecordRaw> = [
         name: 'User',
         component: User,
         meta: { title: '用户管理', icon: 'User' }
+      },
+      {
+        path: '/roles', // Consistent with existing paths like /product, /user
+        name: 'RoleManagement',
+        component: RoleManagement,
+        meta: { title: '角色管理', icon: 'Setting' } // Using 'Setting' icon
+      },
+      {
+        path: '/permissions', // Consistent with existing paths
+        name: 'PermissionManagement',
+        component: PermissionManagement,
+        meta: { title: '权限管理', icon: 'Key' } // Using 'Key' icon
       }
     ]
   },
@@ -121,21 +135,44 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
-  // 设置页面标题
-  document.title = `${to.meta.title as string || 'Admin'} - Dreamy Hive`
+import { useUserStore } from '../store/modules/user'; 
+import piniaInstance from '../store'; // Assuming store/index.ts exports the pinia instance
+
+router.beforeEach(async (to, from, next) => {
+  document.title = `${to.meta.title as string || 'Admin'} - Dreamy Hive`;
   
-  // 暂时关闭登录检查，方便开发调试
-  // 正式上线时需要打开这个检查
-  // const token = localStorage.getItem('token')
-  // if (to.path !== '/login' && !token) {
-  //   next('/login')
-  // } else {
-  //   next()
-  // }
-  
-  // 直接放行所有路由
-  next()
-})
+  // It's generally safer to initialize store access within the guard
+  // if there's any doubt about initialization order.
+  const userStore = useUserStore(piniaInstance); // Pass the pinia instance
+  const token = userStore.token; // Use token from store, which reads from localStorage initially
+
+  if (token) {
+    if (to.path === '/login') {
+      next({ path: '/' }); // Already logged in, redirect from /login to dashboard
+    } else {
+      // Check if user info (especially roles) is loaded if routes depend on it.
+      // For now, if basic userInfo (like ID) isn't present, fetch it.
+      if (!userStore.userInfo || !userStore.userInfo.id) { // Check for a key property like id
+        try {
+          await userStore.getInfo(); // Load user info if not already loaded
+          // If you have role-based routes, you might need to re-evaluate routes here or use addRoute
+          next({ ...to, replace: true }); // Ensure navigation happens after getInfo
+        } catch (error) {
+          console.error('Failed to fetch user info in router guard:', error);
+          userStore.resetState(); // Clear invalid token
+          next('/login'); // Redirect to login on error
+        }
+      } else {
+        next(); // User is logged in, and info is present
+      }
+    }
+  } else { // No token
+    if (to.path !== '/login') {
+      next('/login'); // Not logged in, redirect to login if not on login page
+    } else {
+      next(); // Allow access to login page
+    }
+  }
+});
 
 export default router
