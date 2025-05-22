@@ -29,6 +29,60 @@
           </el-select>
         </el-form-item>
 
+        <!-- Step 4: Display Attributes in Template -->
+        <div v-if="categoryAttributes.length > 0" class="attributes-section">
+          <h3>商品属性</h3>
+          <el-form-item
+            v-for="attr in categoryAttributes"
+            :key="attr.id"
+            :label="attr.name"
+            :prop="'attributeValues.' + attr.id" 
+            class="attribute-item"
+          >
+            <!-- Simple text input for now, as per subtask instructions -->
+            <el-input 
+              v-if="attr.inputType === 1"
+              v-model="form.attributeValues[attr.id]" 
+              :placeholder="'请输入 ' + attr.name" 
+            />
+            <el-select 
+              v-else-if="attr.inputType === 2" 
+              v-model="form.attributeValues[attr.id]" 
+              :placeholder="'请选择 ' + attr.name"
+              clearable
+              style="width: 100%"
+            >
+              <el-option 
+                v-for="opt in (attr.selectList || '').split(',').map(s => s.trim()).filter(s => s)" 
+                :key="opt" 
+                :label="opt" 
+                :value="opt" 
+              />
+            </el-select>
+            <el-select 
+              v-else-if="attr.inputType === 3" 
+              v-model="form.attributeValues[attr.id]" 
+              multiple 
+              :placeholder="'请选择 ' + attr.name"
+              clearable
+              style="width: 100%"
+            >
+              <el-option 
+                v-for="opt in (attr.selectList || '').split(',').map(s => s.trim()).filter(s => s)" 
+                :key="opt" 
+                :label="opt" 
+                :value="opt" 
+              />
+            </el-select>
+            <!-- Fallback for unknown inputType, providing a basic input -->
+            <el-input 
+              v-else
+              v-model="form.attributeValues[attr.id]" 
+              :placeholder="'请输入 ' + attr.name + (attr.selectList ? ' (选项: ' + attr.selectList + ')' : '')" 
+            />
+          </el-form-item>
+        </div>
+
         <el-form-item label="商品价格" prop="price">
           <el-input-number
             v-model="form.price"
@@ -105,13 +159,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules, UploadProps } from 'element-plus'
 import { getProductDetail, addProduct, updateProduct } from '../../api/product'
 import { getCategoryList } from '../../api/category'
+import { getAttributesByCategoryId } from '../../api/attribute' // Step 1: Import API
 
 const route = useRoute()
 const router = useRouter()
@@ -133,8 +188,12 @@ const form = reactive({
   mainImage: '',
   images: [] as string[],
   brief: '',
-  detail: ''
+  detail: '',
+  attributeValues: {} as Record<string, any> // Step 2: Add attributeValues to form
 })
+
+// Step 2: Add categoryAttributes ref
+const categoryAttributes = ref<any[]>([])
 
 // 图片列表
 const imageList = ref<any[]>([])
@@ -196,9 +255,23 @@ const getDetail = async (id: string) => {
     // 填充表单数据
     Object.keys(form).forEach(key => {
       if (key in productData) {
-        form[key as keyof typeof form] = productData[key]
+        // Exclude attributeValues from this generic loop, handle it specifically
+        if (key !== 'attributeValues') {
+          form[key as keyof typeof form] = productData[key];
+        }
       }
     })
+
+    // Step 5 (modified): Populate form.attributeValues if productData has it.
+    if (productData.attributeValues) {
+      form.attributeValues = { ...productData.attributeValues };
+    }
+
+    // Step 3 (modified for onMounted/edit mode): Call fetchCategoryAttributes after form.categoryId is set
+    // and after potentially loading form.attributeValues from productData.
+    if (isEdit.value && form.categoryId) {
+      await fetchCategoryAttributes(form.categoryId);
+    }
     
     // 处理图片列表
     if (productData.images && productData.images.length > 0) {
@@ -214,6 +287,51 @@ const getDetail = async (id: string) => {
     ElMessage.error('获取商品详情失败')
   }
 }
+
+// Step 3: Create fetchCategoryAttributes function
+const fetchCategoryAttributes = async (categoryId: string) => {
+  categoryAttributes.value = []; // Clear previous attributes
+  if (!categoryId) { // If categoryId is cleared, ensure attributes are cleared
+    form.attributeValues = {}; // Also clear values
+    return;
+  }
+  try {
+    const res = await getAttributesByCategoryId(categoryId);
+    categoryAttributes.value = res.data || [];
+    
+    // Initialize form.attributeValues for newly fetched attributes
+    // For now, initialize all as empty strings, assuming simple el-input display
+    const newAttributeValues = { ...form.attributeValues }; // Preserve existing values if any (e.g. from loaded product)
+    categoryAttributes.value.forEach(attr => {
+      if (!Object.prototype.hasOwnProperty.call(newAttributeValues, attr.id)) {
+        newAttributeValues[attr.id] = ''; // Default to empty string for el-input
+      }
+    });
+    form.attributeValues = newAttributeValues;
+
+  } catch (error) {
+    console.error('获取分类属性失败', error);
+    ElMessage.error('获取分类属性失败');
+    // On error, attributes are cleared. Consider if form.attributeValues should also be cleared.
+    // For now, retain potentially loaded values, or clear them: form.attributeValues = {};
+  }
+};
+
+// Step 3: Watch for categoryId changes
+watch(() => form.categoryId, (newCategoryId, oldCategoryId) => {
+  // Check if newCategoryId is different from oldCategoryId to prevent unnecessary calls
+  // Also check if newCategoryId is truthy
+  if (newCategoryId && newCategoryId !== oldCategoryId) {
+    // When category changes, it's a good practice to clear attribute values 
+    // that might be from a previously selected category.
+    form.attributeValues = {}; 
+    fetchCategoryAttributes(newCategoryId);
+  } else if (!newCategoryId) {
+    // If categoryId is cleared (e.g., user deselects the category)
+    categoryAttributes.value = [];
+    form.attributeValues = {}; // Clear attributes and their values
+  }
+});
 
 // 主图上传成功回调
 const handleMainImageSuccess: UploadProps['onSuccess'] = (response) => {
@@ -282,9 +400,9 @@ const cancel = () => {
 onMounted(() => {
   getCategoryOptions()
   
-  // 如果是编辑模式，获取商品详情
+  // 如果是编辑模式，获取商品详情. fetchCategoryAttributes is now called within getDetail.
   if (isEdit.value && route.params.id) {
-    getDetail(route.params.id as string)
+    await getDetail(route.params.id as string);
   }
 })
 </script>
@@ -298,6 +416,25 @@ onMounted(() => {
   .product-form {
     max-width: 800px;
     margin: 0 auto;
+  }
+
+  .attributes-section {
+    h3 { 
+      font-size: 16px;
+      margin-bottom: 15px;
+      margin-left: 10px; // Align closer to el-form-item content
+      font-weight: 600;
+      color: #606266; // Standard text color
+      padding-bottom: 5px;
+      border-bottom: 1px solid #eee; // Separator for the header
+    }
+    .attribute-item { // Class for individual attribute form items
+       margin-bottom: 18px; // Standard el-form-item margin is 22px, can adjust if needed
+    }
+    margin-top: 10px; 
+    padding-top: 10px;
+    border-top: 1px solid #ebeef5; // Visual separator for the whole section
+    margin-bottom: 22px; // Space before next form item
   }
   
   .avatar-uploader {
