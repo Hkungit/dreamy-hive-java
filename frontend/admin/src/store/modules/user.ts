@@ -23,11 +23,20 @@ export const useUserStore = defineStore('user', {
     // 登录
     async login(username: string, password: string) {
       try {
-        const { data } = await userLogin(username, password)
-        const { token } = data
-        this.token = token
-        localStorage.setItem('token', token)
-        return Promise.resolve(data)
+        const response: any = await userLogin(username, password)
+        if (response.success && response.data) {
+          // 从返回的数据中提取token
+          const tokenValue = response.data.tokenValue
+          const tokenName = response.data.tokenName || 'satoken'
+          
+          this.token = tokenValue
+          localStorage.setItem('token', tokenValue)
+          localStorage.setItem('tokenName', tokenName)
+          
+          return Promise.resolve(response)
+        } else {
+          return Promise.reject(new Error(response.message || '登录失败'))
+        }
       } catch (error) {
         return Promise.reject(error)
       }
@@ -62,6 +71,7 @@ export const useUserStore = defineStore('user', {
       this.userInfo = {}
       this.roles = []
       localStorage.removeItem('token')
+      localStorage.removeItem('tokenName')
     }
   }
 })

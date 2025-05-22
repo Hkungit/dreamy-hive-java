@@ -3,7 +3,7 @@ import request from './request'
 // 登录接口
 export function login(username: string, password: string) {
   return request({
-    url: '/admin/login',
+    url: '/v1/user/login',
     method: 'post',
     data: {
       username,

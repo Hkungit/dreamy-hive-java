@@ -3,7 +3,7 @@ import { ElMessage } from 'element-plus'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api', // 从环境变量获取API基础URL
+  baseURL: 'http://localhost:8080/api', // 直接使用固定URL而不是相对路径
   timeout: 15000 // 请求超时时间
 })
 
@@ -12,8 +12,11 @@ service.interceptors.request.use(
   config => {
     // 从localStorage获取token并添加到请求头
     const token = localStorage.getItem('token')
+    const tokenName = localStorage.getItem('tokenName') || 'satoken'
+    
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
+      // 根据后端要求设置token请求头，添加Bearer前缀
+      config.headers[tokenName] = `Bearer ${token}`
     }
     return config
   },
@@ -28,8 +31,8 @@ service.interceptors.response.use(
   response => {
     const res = response.data
     
-    // 如果返回的状态码不是200，则判断为错误
-    if (res.code !== 200) {
+    // 如果返回的success为false，则判断为错误
+    if (!res.success) {
       ElMessage({
         message: res.message || '请求错误',
         type: 'error',

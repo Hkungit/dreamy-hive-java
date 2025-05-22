@@ -94,15 +94,16 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        await userStore.login(loginForm.username, loginForm.password)
+        const result = await userStore.login(loginForm.username, loginForm.password)
         router.push({ path: '/' })
         ElMessage({
-          message: '登录成功',
+          message: result.message || '登录成功',
           type: 'success'
         })
       } catch (error: any) {
+        console.error('登录失败:', error)
         ElMessage({
-          message: error.message || '登录失败，请重试',
+          message: error.message || '用户名或密码错误，请重试',
           type: 'error'
         })
       } finally {

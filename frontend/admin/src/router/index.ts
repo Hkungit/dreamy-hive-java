@@ -117,7 +117,7 @@ const routes: Array<AppRouteRecordRaw> = [
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes: routes as any
 })
 
 // 路由守卫
@@ -125,17 +125,13 @@ router.beforeEach((to, from, next) => {
   // 设置页面标题
   document.title = `${to.meta.title as string || 'Admin'} - Dreamy Hive`
   
-  // 暂时关闭登录检查，方便开发调试
-  // 正式上线时需要打开这个检查
-  // const token = localStorage.getItem('token')
-  // if (to.path !== '/login' && !token) {
-  //   next('/login')
-  // } else {
-  //   next()
-  // }
-  
-  // 直接放行所有路由
-  next()
+  // 登录检查
+  const token = localStorage.getItem('token')
+  if (to.path !== '/login' && !token) {
+    next('/login')
+  } else {
+    next()
+  }
 })
 
 export default router
