@@ -24,9 +24,16 @@ export const useUserStore = defineStore('user', {
     async login(username: string, password: string) {
       try {
         const { data } = await userLogin(username, password)
-        const { token } = data
-        this.token = token
-        localStorage.setItem('token', token)
+        // data is LoginResponse: {"token": "jwt-token-string", "userInfo": { /* User DTO */ }}
+        
+        const { token, userInfo } = data; // Destructure userInfo from data
+        this.token = token;
+        localStorage.setItem('token', token);
+        
+        // Set user information and roles
+        this.userInfo = userInfo; 
+        this.roles = userInfo.roles || []; // Assuming userInfo DTO has a 'roles' field
+
         return Promise.resolve(data)
       } catch (error) {
         return Promise.reject(error)
