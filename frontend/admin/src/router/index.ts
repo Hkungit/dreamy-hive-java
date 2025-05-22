@@ -11,6 +11,8 @@ import Order from '../views/order/index.vue'
 import OrderDetail from '../views/order/OrderDetail.vue'
 import Community from '../views/community/index.vue'
 import User from '../views/user/index.vue'
+import RoleManagement from '../views/role/RoleManagement.vue' // Import RoleManagement
+import PermissionManagement from '../views/permission/PermissionManagement.vue' // Import PermissionManagement
 import Login from '../views/login/Login.vue'
 import NotFound from '../views/error/404.vue'
 
@@ -98,6 +100,18 @@ const routes: Array<AppRouteRecordRaw> = [
         name: 'User',
         component: User,
         meta: { title: '用户管理', icon: 'User' }
+      },
+      {
+        path: '/roles', // Consistent with existing paths like /product, /user
+        name: 'RoleManagement',
+        component: RoleManagement,
+        meta: { title: '角色管理', icon: 'Setting' } // Using 'Setting' icon
+      },
+      {
+        path: '/permissions', // Consistent with existing paths
+        name: 'PermissionManagement',
+        component: PermissionManagement,
+        meta: { title: '权限管理', icon: 'Key' } // Using 'Key' icon
       }
     ]
   },

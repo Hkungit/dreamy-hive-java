@@ -299,8 +299,8 @@
 <script lang="ts" setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getPostList, getPostDetail, reviewPost, deletePost } from '../../api/community'
-import { getCommentList, reviewComment, deleteComment } from '../../api/community'
+import { getPostList, getPostDetail, updatePostStatus, deletePost } from '../../api/community' // reviewPost -> updatePostStatus
+import { getCommentList, updateCommentStatus, deleteComment } from '../../api/community' // reviewComment -> updateCommentStatus
 
 // 当前激活的标签页
 const activeTab = ref('posts')
@@ -520,9 +520,9 @@ const confirmReject = () => {
 }
 
 // 提交帖子审核
-const submitReviewPost = async (id: string, status: string, reason?: string) => {
+const submitReviewPost = async (id: string, status: string, reason?: string) => { // reason is kept for now as per instructions but not used in API call
   try {
-    await reviewPost(id, status, reason)
+    await updatePostStatus(id, status) // Updated API call, reason is not passed
     ElMessage.success('审核操作成功')
     
     // 如果是从详情对话框操作的，关闭对话框
@@ -539,9 +539,9 @@ const submitReviewPost = async (id: string, status: string, reason?: string) => 
 }
 
 // 提交评论审核
-const submitReviewComment = async (id: string, status: string, reason?: string) => {
+const submitReviewComment = async (id: string, status: string, reason?: string) => { // reason is kept for now as per instructions but not used in API call
   try {
-    await reviewComment(id, status, reason)
+    await updateCommentStatus(id, status) // Updated API call, reason is not passed
     ElMessage.success('审核操作成功')
     
     // 如果是从详情对话框操作的，关闭对话框

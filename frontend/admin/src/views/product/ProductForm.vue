@@ -163,10 +163,10 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import type { FormInstance, FormRules, UploadProps } from 'element-plus'
-import { getProductDetail, addProduct, updateProduct } from '../../api/product'
+import type { FormInstance, FormRules, UploadProps, UploadUserFile, UploadRequestOptions } from 'element-plus'
+import { getProductDetail, addProduct, updateProduct, uploadProductImage, deleteProductImage } from '../../api/product'
 import { getCategoryList } from '../../api/category'
-import { getAttributesByCategoryId } from '../../api/attribute' // Step 1: Import API
+import { getAttributesByCategoryId } from '../../api/attribute' 
 
 const route = useRoute()
 const router = useRouter()
@@ -274,13 +274,16 @@ const getDetail = async (id: string) => {
     }
     
     // 处理图片列表
-    if (productData.images && productData.images.length > 0) {
-      imageList.value = productData.images.map((url: string) => {
-        return {
-          name: url.substring(url.lastIndexOf('/') + 1),
-          url
-        }
-      })
+    if (productData.images && Array.isArray(productData.images)) {
+      form.images = [...productData.images]; // Ensure it's a new array
+      imageList.value = productData.images.map((url: string, index: number) => ({
+        name: url.substring(url.lastIndexOf('/') + 1),
+        url: url,
+        uid: `existing-${index}-${Date.now()}` // Generate a unique UID
+      }));
+    } else {
+      form.images = [];
+      imageList.value = [];
     }
   } catch (error) {
     console.error('获取商品详情失败', error)
@@ -333,28 +336,106 @@ watch(() => form.categoryId, (newCategoryId, oldCategoryId) => {
   }
 });
 
-// 主图上传成功回调
-const handleMainImageSuccess: UploadProps['onSuccess'] = (response) => {
-  form.mainImage = response.data.url
-}
+// 主图上传成功回调 (Logic moved to handleCustomMainImageUpload)
+// const handleMainImageSuccess: UploadProps['onSuccess'] = (response) => {
+//   form.mainImage = response.data.url
+// }
 
-// 图片集上传成功回调
-const handleImageSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
-  const url = response.data.url
-  form.images.push(url)
-  imageList.value.push({
-    name: url.substring(url.lastIndexOf('/') + 1),
-    url
-  })
-}
+const handleCustomMainImageUpload = async (options: UploadRequestOptions) => {
+  try {
+    const res = await uploadProductImage(options.file); // from product.ts
+    if (res.code === 0 && res.data && res.data.url) {
+      form.mainImage = res.data.url;
+      ElMessage.success('主图上传成功');
+    } else {
+      ElMessage.error(res.message || '主图上传失败');
+    }
+  } catch (error) {
+    ElMessage.error('主图上传请求失败');
+    console.error('Main image upload error', error);
+  }
+};
+
+// 图片集上传成功回调 (Logic moved to handleCustomGalleryImageUpload)
+// const handleImageSuccess: UploadProps['onSuccess'] = (response, uploadFile) => {
+//   const url = response.data.url
+//   form.images.push(url)
+//   imageList.value.push({
+//     name: url.substring(url.lastIndexOf('/') + 1),
+//     url
+//   })
+// }
+
+const handleCustomGalleryImageUpload = async (options: UploadRequestOptions) => {
+  try {
+    const res = await uploadProductImage(options.file); // Re-use uploadProductImage
+    if (res.code === 0 && res.data && res.data.url) {
+      const newImageUrl = res.data.url;
+      form.images.push(newImageUrl);
+      // Update imageList for el-upload's display
+      imageList.value.push({ 
+        name: res.data.name || newImageUrl.substring(newImageUrl.lastIndexOf('/') + 1), 
+        url: newImageUrl,
+        uid: options.file.uid || Date.now() // Use file's uid if available, otherwise generate
+      });
+      ElMessage.success('图片上传成功');
+    } else {
+      ElMessage.error(res.message || '图片上传失败');
+    }
+  } catch (error) {
+    ElMessage.error('图片上传请求失败');
+    console.error('Gallery image upload error', error);
+    // It's good practice to call options.onError to notify el-upload of failure
+    // options.onError(error as Error); // Not strictly required by subtask but good for el-upload state
+  }
+};
 
 // 图片集移除回调
-const handleImageRemove: UploadProps['onRemove'] = (uploadFile) => {
-  const index = form.images.indexOf(uploadFile.url)
-  if (index !== -1) {
-    form.images.splice(index, 1)
+const handleImageRemove: UploadProps['onRemove'] = async (uploadFile: UploadUserFile) => {
+  // uploadFile.url should exist if it's an uploaded image
+  // uploadFile.status === 'success' ensures it's an uploaded file, not one that failed or is being uploaded
+  if (uploadFile.url && uploadFile.status === 'success') { 
+    try {
+      const res = await deleteProductImage(uploadFile.url); // from product.ts
+      if (res.code === 0) {
+        ElMessage.success('图片删除成功 (服务器)');
+      } else {
+        ElMessage.error(res.message || '图片删除失败 (服务器)');
+        // Optionally, if server deletion fails, you might reconsider removing it from the list,
+        // or add it back to allow another attempt. For now, we'll proceed with local removal.
+      }
+    } catch (error) {
+      ElMessage.error('图片删除请求失败');
+      console.error('Image delete error', error);
+      // Similar to above, decide UX if server call fails.
+    }
   }
-}
+
+  // Remove from local form.images array (source of truth for submission)
+  if (uploadFile.url) {
+    const indexInFormImages = form.images.indexOf(uploadFile.url);
+    if (indexInFormImages !== -1) {
+      form.images.splice(indexInFormImages, 1);
+    }
+  }
+
+  // Remove from imageList.value (which is bound to el-upload's file-list for display)
+  // El-upload typically handles its internal list when on-remove returns, 
+  // but it's good to ensure our imageList (if used as :file-list) is also synced.
+  // The most reliable way is to find by uid.
+  if (uploadFile.uid) {
+    const indexInImageList = imageList.value.findIndex(file => file.uid === uploadFile.uid);
+    if (indexInImageList !== -1) {
+      imageList.value.splice(indexInImageList, 1);
+    }
+  } else if (uploadFile.url) { 
+    // Fallback if UID is not available or not matching (e.g. for initially loaded images if UID wasn't set)
+     const idx = imageList.value.findIndex(file => file.url === uploadFile.url);
+     if (idx !== -1) {
+       imageList.value.splice(idx, 1);
+     }
+  }
+};
 
 // 图片上传前的校验
 const beforeImageUpload: UploadProps['beforeUpload'] = (file) => {

@@ -18,12 +18,29 @@ export function getOrderDetail(id: string) {
 }
 
 // 更新订单状态
-export function updateOrderStatus(id: string, status: string) {
+export function updateOrderStatus(id: string, data: { status: string; note?: string }) {
   return request({
     url: `/admin/orders/${id}/status`,
     method: 'put',
-    data: { status }
-  })
+    data // Pass the data object directly
+  });
+}
+
+// 发货
+export function shipOrder(id: string, data: { deliveryCompany: string, deliverySn: string }) {
+  return request({
+    url: `/admin/orders/${id}/ship`,
+    method: 'post',
+    data
+  });
+}
+
+// 删除订单
+export function deleteOrder(id: string) {
+  return request({
+    url: `/admin/orders/${id}`,
+    method: 'delete'
+  });
 }
 
 // 获取订单统计数据
