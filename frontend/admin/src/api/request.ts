@@ -4,7 +4,7 @@ import { getToken, getTokenName, clearAuth } from '../utils/auth'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: 'http://localhost:8080/api', // 直接使用固定URL而不是相对路径
+  baseURL: 'http://127.0.0.1:8080/api', // 直接使用固定URL而不是相对路径
   timeout: 15000 // 请求超时时间
 })
 
